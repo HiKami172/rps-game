@@ -2,18 +2,26 @@
 This module implements a bot model for playing the Rock-Paper-Scissors game.
 The model is designed as a class `RPSBot` which uses a Markov chain for prediction.
 """
-from typing import List, Optional
+
+from typing import List, Optional, Tuple
+from dataclasses import dataclass, field
+
 import numpy as np
 
 
+@dataclass
 class RPSBot:
     """
     The `RPSBot` class is a bot that plays the Rock-Paper-Scissors game.
     It uses a Markov chain model to predict the next state and generate a counter move.
     """
-    def __init__(self, lr=0.01):
-        self.states = ('R', 'P', 'S')
-        self.lr = lr
+
+    lr: float = field(default=0.01)
+    states: Tuple[str, ...] = field(init=False, default=("R", "P", "S"))
+    state: Optional[int] = field(init=False, default=None)
+    transitions: np.ndarray = field(init=False)
+
+    def __post_init__(self):
         self.transitions = np.random.rand(3, 3)
         self.transitions /= self.transitions.sum(axis=1)[:, np.newaxis]
 
@@ -28,25 +36,29 @@ class RPSBot:
     def train(self, history: List[str]) -> None:
         """Trains the model based on the states history."""
         for i in range(len(history) - 1):
-            self.update_transitions(history[i], history[i + 1])
+            self.update_transitions(history[i + 1])
 
-    def update_transitions(self, state: str, new_state: str) -> None:
-        """Changes probabilities for transitions from state."""
-        if any(s not in self.states for s in [state, new_state]):
+    def update_transitions(self, move: str) -> None:
+        """Sets new state and updates the transitions matrix."""
+        if move not in self.states:
             raise ValueError("Invalid state")
-        state_index = self.states.index(state)
-        new_state_index = self.states.index(new_state)
-        self.transitions[state_index] -= self.lr
-        self.transitions[state_index, new_state_index] += self.lr * 3
+        new_state = self.states.index(move)
+        if self.state is None:
+            self.state = new_state
+            return
+        self.transitions[self.state] = np.maximum(
+            0.001, self.transitions[self.state] - self.lr
+        )
+        self.transitions[self.state, new_state] = np.minimum(
+            0.999, self.transitions[self.state, new_state] + self.lr * 3
+        )
+        self.state = new_state
 
-    def predict(self, state: Optional[str] = None) -> str:
-        """Predicts the next state based on current and returns counter move."""
-        if state is None:
+    def predict(self) -> str:
+        """Predicts the next state based on current and returns a counter move."""
+        if self.state is None:
             stable_distribution = self._calculate_stable_distribution()
-            response_index = np.argmax(stable_distribution)
-            return self.states[response_index]
-        if state not in self.states:
-            raise ValueError("Invalid state")
-        state_index = self.states.index(state)
-        response_index = (np.argmax(self.transitions[state_index]) + 1) % 3
+            response_index = (np.argmax(stable_distribution) + 1) % 3
+        else:
+            response_index = (np.argmax(self.transitions[self.state]) + 1) % 3
         return self.states[response_index]
