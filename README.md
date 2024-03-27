@@ -3,6 +3,8 @@
 Welcome to the Rock Paper Scissors game implemented in Python! 
 The computer logic is based on Markov chains, hence it tries to predict your next move.
 
+<img src="game-preview.png">
+
 ## Installation
 
 1. Clone this repository to your local machine using Git:
