@@ -2,9 +2,11 @@
 This module implements a bot model for playing the Rock-Paper-Scissors game.
 The model is designed as a class `RPSBot` which uses a Markov chain for prediction.
 """
+import os
 
 from typing import List, Optional, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime
 
 import numpy as np
 
@@ -89,3 +91,23 @@ class RPSBot:
         :return: None
         """
         self.state = None
+
+    def save_weights(self) -> None:
+        """
+        Save weights of the model to the file.
+        :return: None
+        """
+        if not os.path.exists('logs'):
+            os.makedirs('logs')
+
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        with open(f"logs/{timestamp}.txt", "w", encoding="UTF-8") as f:
+            np.savetxt(f, self.transitions)
+
+    def load_weights(self, filepath: str) -> None:
+        """
+        Load model weights from the file.
+        :param filepath: filepath of the weights file.
+        :return: None
+        """
+        self.transitions = np.loadtxt(filepath)

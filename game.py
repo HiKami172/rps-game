@@ -183,6 +183,7 @@ class RPSGame:
         self.state.add_to_history(player_move, bot_move, round_result)
 
         if self.state.is_finished():
+            self.bot.save_weights()
             self.state.update_status()
 
         return self.state
