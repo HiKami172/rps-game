@@ -14,6 +14,12 @@ class RPSBot:
     """
     The `RPSBot` class is a bot that plays the Rock-Paper-Scissors game.
     It uses a Markov chain model to predict the next state and generate a counter move.
+
+    Attributes:
+        lr: learning rate of the model.
+        states: possible states of the model.
+        state: current state of the model.
+        transitions: transition matrix of the Markov model.
     """
 
     lr: float = field(default=0.01)
@@ -26,7 +32,10 @@ class RPSBot:
         self.transitions /= self.transitions.sum(axis=1)[:, np.newaxis]
 
     def _calculate_stable_distribution(self) -> np.ndarray:
-        """Calculate the stable distribution of the transitions' matrix."""
+        """
+        Calculate the stable distribution of the transitions' matrix.
+        :return: stable distribution of the states.
+        """
         eigenvalues, eigenvectors = np.linalg.eig(self.transitions.T)
         first_eigen = eigenvectors[:, np.where(np.abs(eigenvalues - 1.0) < 1e-8)[0][0]]
         stable_distribution = np.real(first_eigen)
@@ -34,12 +43,20 @@ class RPSBot:
         return stable_distribution
 
     def train(self, history: List[str]) -> None:
-        """Trains the model based on the states history."""
+        """
+        Trains the model based on the states' history.
+        :param history: states history.
+        :return: None
+        """
         for i in range(len(history) - 1):
             self.update_transitions(history[i + 1])
 
     def update_transitions(self, move: str) -> None:
-        """Sets new state and updates the transitions matrix."""
+        """
+        Sets new state and updates the transitions matrix.
+        :param move: next chain state.
+        :return: None
+        """
         if move not in self.states:
             raise ValueError("Invalid state")
         new_state = self.states.index(move)
@@ -55,7 +72,10 @@ class RPSBot:
         self.state = new_state
 
     def predict(self) -> str:
-        """Predicts the next state based on current and returns a counter move."""
+        """
+        Predicts the next state based on current and returns a counter move.
+        :return: bot move represented by char R/P/S
+        """
         if self.state is None:
             stable_distribution = self._calculate_stable_distribution()
             response_index = (np.argmax(stable_distribution) + 1) % 3
