@@ -121,6 +121,16 @@ class GameContainer(ft.Container):
         self.player_screen = PlayerScreen(PLAYER_IMAGE)
         self.bot_screen = PlayerScreen(BOT_IMAGE)
 
+        self.rock_btn = MoveButton(lambda _: self.on_move(RPSMove.ROCK),
+                                   image_url=ROCK_IMAGE,
+                                   bg_color="red")
+        self.paper_btn = MoveButton(lambda _: self.on_move(RPSMove.PAPER),
+                                    image_url=PAPER_IMAGE,
+                                    bg_color="green")
+        self.scissors_btn = MoveButton(lambda _: self.on_move(RPSMove.SCISSORS),
+                                       image_url=SCISSORS_IMAGE,
+                                       bg_color="blue")
+
         super().__init__(
             width=800,
             height=700,
@@ -150,7 +160,16 @@ class GameContainer(ft.Container):
         self.game.restart_game()
         self.page.close_dialog()
         self.update_content(self.game.state)
+        self.change_buttons_state()
         self.page.update()
+
+    def change_buttons_state(self) -> None:
+        """
+        Enables/Disables move buttons.
+        :return: None
+        """
+        for btn in [self.rock_btn, self.paper_btn, self.scissors_btn]:
+            btn.disabled = not btn.disabled
 
     def finish_game(self, game_status: GameStatus) -> None:
         """
@@ -158,6 +177,7 @@ class GameContainer(ft.Container):
         :param game_status: The result of the game.
         :return: None
         """
+        self.change_buttons_state()
         message_control = ft.Text(theme_style=self.THEME_STYLE, font_family=self.FONT)
         match game_status:
             case GameStatus.WIN:
@@ -170,21 +190,7 @@ class GameContainer(ft.Container):
                 message_control.value = "It's a draw!"
                 message_control.color = "white"
 
-        restart_button = ft.FilledButton("Restart",
-                                         icon=ft.icons.RESTART_ALT,
-                                         on_click=lambda _: self.restart_game())
-        exit_button = ft.FilledButton("Exit",
-                                      icon=ft.icons.EXIT_TO_APP,
-                                      on_click=lambda _: close_app(self.page))
-
-        dialog = ft.AlertDialog(
-            title=message_control,
-            content=ft.Row(
-                [restart_button, exit_button],
-                alignment=ft.alignment.center
-            ),
-            on_dismiss=lambda _: self.restart_game()
-        )
+        dialog = ft.AlertDialog(title=message_control)
         self.page.dialog = dialog
         dialog.open = True
         self.page.update()
@@ -239,16 +245,6 @@ class GameContainer(ft.Container):
         """
         self.update_content(self.game.state)
 
-        rock_btn = MoveButton(lambda _: self.on_move(RPSMove.ROCK),
-                                   image_url=ROCK_IMAGE,
-                                   bg_color="red")
-        paper_btn = MoveButton(lambda _: self.on_move(RPSMove.PAPER),
-                                    image_url=PAPER_IMAGE,
-                                    bg_color="green")
-        scissors_btn = MoveButton(lambda _: self.on_move(RPSMove.SCISSORS),
-                                       image_url=SCISSORS_IMAGE,
-                                       bg_color="blue")
-
         content = ft.Column(
             [
                 ft.Row(
@@ -264,7 +260,7 @@ class GameContainer(ft.Container):
                 ),
                 ft.Container(
                     ft.Row(
-                        [rock_btn, paper_btn, scissors_btn],
+                        [self.rock_btn, self.paper_btn, self.scissors_btn],
                         alignment=ft.MainAxisAlignment.CENTER,
                     ),
                     padding=10,
