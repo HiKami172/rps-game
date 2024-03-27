@@ -62,3 +62,10 @@ class RPSBot:
         else:
             response_index = (np.argmax(self.transitions[self.state]) + 1) % 3
         return self.states[response_index]
+
+    def reset_state(self) -> None:
+        """
+        Resets the state of the model.
+        :return: None
+        """
+        self.state = None
