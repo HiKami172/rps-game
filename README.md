@@ -21,3 +21,11 @@ The computer logic is based on Markov chains, hence it tries to predict your nex
    ```
    pip install -r requirements.txt
    ```
+
+## Run
+
+To run the application execute the following command:
+```shell
+flet run ./main.py
+```
+Make sure, that all the dependencies are installed correctly.
